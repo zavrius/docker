@@ -3,3 +3,150 @@ docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "\l"'
 docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "SELECT datname FROM pg_database;"'
 
 docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -t -c "SELECT datname FROM pg_database ORDER BY datname;"'
+
+
+###Показать таблицы из флага -d (бд)
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d mydb -c "\dt"'
+
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "\dt"'
+          List of tables
+ Schema | Name  | Type  |  Owner   
+--------+-------+-------+----------
+ public | users | table | qdbadmin
+(1 row)
+
+смотрим структуру таблицы users
+
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "\d users"'
+                                        Table "public.users"
+   Column   |            Type             | Collation | Nullable |              Default              
+------------+-----------------------------+-----------+----------+-----------------------------------
+ id         | integer                     |           | not null | nextval('users_id_seq'::regclass)
+ name       | character varying(50)       |           | not null | 
+ email      | character varying(100)      |           |          | 
+ age        | integer                     |           |          | 
+ created_at | timestamp without time zone |           |          | CURRENT_TIMESTAMP
+Indexes:
+    "users_pkey" PRIMARY KEY, btree (id)
+    "users_email_key" UNIQUE CONSTRAINT, btree (email)
+
+смотрим содержимое - Все строки
+
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "SELECT * FROM users;"'
+ id | name | email | age | created_at 
+----+------+-------+-----+------------
+(0 rows)
+
+смотрим индексы таблицы
+
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "\di"'
+                   List of indexes
+ Schema |      Name       | Type  |  Owner   | Table 
+--------+-----------------+-------+----------+-------
+ public | users_email_key | index | qdbadmin | users
+ public | users_pkey      | index | qdbadmin | users
+(2 rows)
+
+
+смотрим ограничения
+
+Ограничения (constraints):
+
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "\d users"'
+                                        Table "public.users"
+   Column   |            Type             | Collation | Nullable |              Default              
+------------+-----------------------------+-----------+----------+-----------------------------------
+ id         | integer                     |           | not null | nextval('users_id_seq'::regclass)
+ name       | character varying(50)       |           | not null | 
+ email      | character varying(100)      |           |          | 
+ age        | integer                     |           |          | 
+ created_at | timestamp without time zone |           |          | CURRENT_TIMESTAMP
+Indexes:
+    "users_pkey" PRIMARY KEY, btree (id)
+    "users_email_key" UNIQUE CONSTRAINT, btree (email)
+
+
+смотрим все схемы
+
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "\dn"'
+                 List of schemas
+          Name           |         Owner         
+-------------------------+-----------------------
+ dbo                     | qdbadmin
+ information_schema_tsql | qdbadmin
+ master_dbo              | master_db_owner
+ master_guest            | master_guest
+ msdb_dbo                | msdb_db_owner
+ msdb_guest              | msdb_guest
+ public                  | pg_database_owner
+ qdb_meta                | qdbadmin
+ sys                     | qdbadmin
+ tempdb_dbo              | tempdb_db_owner
+ tempdb_guest            | tempdb_guest
+ testapproles_dbo        | testapproles_db_owner
+ testapproles_guest      | testapproles_guest
+(13 rows)
+
+
+размер таблицы
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "SELECT pg_size_pretty(pg_total_relation_size('\''users'\''));"'
+ pg_size_pretty 
+----------------
+ 16 kB
+(1 row)
+
+активные подключения
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "SELECT * FROM pg_stat_activity;"'
+
+
+
+красивый вывод
+
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "\pset border 2" -c "\pset format aligned" -c "SELECT pid, usename, application_name, client_addr, state, LEFT(query, 40) AS query FROM pg_stat_activity WHERE state IS NOT NULL;"'
+Border style is 2.
+Output format is aligned.
++-------+----------+------------------------------------------------+--------------+--------+------------------------------------------+
+|  pid  | usename  |                application_name                | client_addr  | state  |                  query                   |
++-------+----------+------------------------------------------------+--------------+--------+------------------------------------------+
+|  1357 | qdbadmin | DBeaver 25.3.1 - Main                          | 192.168.65.1 | idle   | SELECT db_name(), schema_name(), origina |
+|  1359 | qdbadmin | DBeaver 25.3.1 - Metadata                      | 192.168.65.1 | idle   | SELECT o.*,ep.value as description,t.is_ |
+|  1363 | qdbadmin | DBeaver 25.3.1 - SQLEditor <mssql_script3.sql> | 192.168.65.1 | idle   | IF OBJECT_ID('CalculateManagerBonus', 'P |
+|  1452 | qdbadmin | DBeaver 25.3.1 - SQLEditor <mssql_script1.sql> | 192.168.65.1 | idle   | use master                               |
+|  1471 | qdbadmin | DBeaver 25.3.1 - SQLEditor <mssql_script2.sql> | 192.168.65.1 | idle   | use master                               |
+|  1710 | qdbadmin | DBeaver 25.3.1 - SQLEditor <mssql_script4.sql> | 192.168.65.1 | idle   | IF OBJECT_ID('TopSlowDeliveries', 'P') I |
+|  5417 | SYSDBA   | qclient                                        | ::1          | idle   | SET qdatabasepg.use_antlr_parser = ON;   |
+| 57765 | qdbadmin | qsql                                           |              | active | SELECT pid, usename, application_name, c |
++-------+----------+------------------------------------------------+--------------+--------+------------------------------------------+
+(8 rows)
+
+
+для проверки блокировок
+
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "SELECT pid, usename, application_name, state, wait_event_type, wait_event, LEFT(query, 50) FROM pg_stat_activity WHERE wait_event IS NOT NULL;"'
+ pid  | usename  |                application_name                | state | wait_event_type |     wait_event      |                        left                
+        
+------+----------+------------------------------------------------+-------+-----------------+---------------------+--------------------------------------------
+--------
+ 1357 | qdbadmin | DBeaver 25.3.1 - Main                          | idle  | Client          | ClientRead          | SELECT db_name(), schema_name(), original_l
+ogin()
+ 1359 | qdbadmin | DBeaver 25.3.1 - Metadata                      | idle  | Client          | ClientRead          | SELECT o.*,ep.value as description,t.is_ext
+ernal F
+ 1363 | qdbadmin | DBeaver 25.3.1 - SQLEditor <mssql_script3.sql> | idle  | Client          | ClientRead          | IF OBJECT_ID('CalculateManagerBonus', 'P') 
+IS NOT 
+ 1452 | qdbadmin | DBeaver 25.3.1 - SQLEditor <mssql_script1.sql> | idle  | Client          | ClientRead          | use master
+ 1471 | qdbadmin | DBeaver 25.3.1 - SQLEditor <mssql_script2.sql> | idle  | Client          | ClientRead          | use master
+ 1710 | qdbadmin | DBeaver 25.3.1 - SQLEditor <mssql_script4.sql> | idle  | Client          | ClientRead          | IF OBJECT_ID('TopSlowDeliveries', 'P') IS N
+OT NULL
+ 5417 | SYSDBA   | qclient                                        | idle  | Client          | ClientRead          | SET qdatabasepg.use_antlr_parser = ON;
+   28 |          |                                                |       | Activity        | AutovacuumMain      | 
+   29 | qdbadmin | pg_cron scheduler                              |       | Extension       | Extension           | 
+   32 | qdbadmin |                                                |       | Activity        | LogicalLauncherMain | 
+   30 | qdbadmin |                                                |       | Activity        | BgwriterMain        | 
+   21 |          |                                                |       | Activity        | IoWorkerMain        | 
+   22 |          |                                                |       | Activity        | IoWorkerMain        | 
+   23 |          |                                                |       | Activity        | IoWorkerMain        | 
+   24 |          |                                                |       | Activity        | CheckpointerMain    | 
+   27 |          |                                                |       | Activity        | WalWriterMain       | 
+   25 |          |                                                |       | Activity        | BgwriterHibernate   | 
+(17 rows)
+
