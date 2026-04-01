@@ -1,0 +1,5 @@
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "\l"'
+
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "SELECT datname FROM pg_database;"'
+
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -t -c "SELECT datname FROM pg_database ORDER BY datname;"'
