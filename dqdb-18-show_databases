@@ -150,3 +150,65 @@ OT NULL
    25 |          |                                                |       | Activity        | BgwriterHibernate   | 
 (17 rows)
 
+
+# Все активные подключения с IP
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "SELECT pid, usename, client_addr, client_port, state FROM pg_stat_activity WHERE client_addr IS NOT NULL;"'
+zsh: command not found: #
+ pid  | usename  | client_addr  | client_port | state 
+------+----------+--------------+-------------+-------
+ 1357 | qdbadmin | 192.168.65.1 |       44719 | idle
+ 1359 | qdbadmin | 192.168.65.1 |       33964 | idle
+ 1363 | qdbadmin | 192.168.65.1 |       44157 | idle
+ 1452 | qdbadmin | 192.168.65.1 |       44083 | idle
+ 1471 | qdbadmin | 192.168.65.1 |       43228 | idle
+ 1710 | qdbadmin | 192.168.65.1 |       25175 | idle
+ 5417 | SYSDBA   | ::1          |       51764 | idle
+(7 rows)
+
+
+docker inspect qdatabase-18 | grep IPAddress
+                    "IPAddress": "172.17.0.2",
+
+1. Ваш хост (macOS)       2. Docker Desktop VM      3. Контейнер
+   IP: 192.168.3.89          IP: 192.168.65.1          IP: 172.17.0.2
+   (DBeaver)                 (промежуточный слой)      (PostgreSQL)
+         │                           │                       │
+         └───────────────────────────┼───────────────────────┘
+                                     │
+                    TCP-соединение проходит через VM
+                    VM подставляет свой IP (192.168.65.1)
+                    как адрес отправителя для контейнера
+
+Когда DBeaver на вашем хосте (192.168.3.89) подключается к PostgreSQL:
+
+Соединение идет через Docker Desktop VM
+VM делает NAT и подставляет свой IP (192.168.65.1) как источник
+Контейнер видит, что соединение пришло с 192.168.65.1
+Поэтому в netstat -tn отображается 192.168.65.1
+
+
+# Посмотреть сетевые настройки контейнера
+docker inspect qdatabase-18 | grep -A 20 "Networks"
+            "Networks": {
+                "bridge": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": null,
+                    "DriverOpts": null,
+                    "GwPriority": 0,
+                    "NetworkID": "95385216c6e6521c93a4ca586a9ee36ab6b46d089b7bddb55cfd352464ab6b41",
+                    "EndpointID": "c8d07fb2e830fc47820f8ec26791065ea4f3b9d886e5b4147892bde4b18f915a",
+                    "Gateway": "172.17.0.1",
+                    "IPAddress": "172.17.0.2",
+                    "MacAddress": "f6:b5:e4:a7:54:5c",
+                    "IPPrefixLen": 16,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "DNSNames": null
+                }
+            }
+        },
+        "ImageManifestDescriptor": {
+
+
