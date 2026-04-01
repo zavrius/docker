@@ -1,0 +1,12 @@
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "SHOW config_file;"'
+                config_file                 
+--------------------------------------------
+ /var/lib/qdatabase-18/data/postgresql.conf
+(1 row)
+
+
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "SHOW hba_file;"'   
+                hba_file                
+----------------------------------------
+ /var/lib/qdatabase-18/data/pg_hba.conf
+(1 row)
