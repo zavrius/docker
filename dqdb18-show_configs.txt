@@ -1,3 +1,29 @@
+
+###SHOW VERSION
+
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "SHOW server_version_num;"'
+ server_version_num 
+--------------------
+ 180001
+(1 row)
+
+
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "SELECT version();"'
+                                                     version                                                     
+-----------------------------------------------------------------------------------------------------------------
+ Digital Q.DataBase 18.1 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 12.3.0-1ubuntu1~22.04.3) 12.3.0, 64-bit
+(1 row)
+
+
+docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "SELECT current_setting('\''server_version'\'');"'
+ current_setting 
+-----------------
+ 18.1
+(1 row)
+
+
+###CONFIGS config_file, hba_file
+
 docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "SHOW config_file;"'
                 config_file                 
 --------------------------------------------
@@ -10,3 +36,4 @@ docker exec -it qdatabase-18 bash -lc 'qsql -U qdbadmin -d qdb -c "SHOW hba_file
 ----------------------------------------
  /var/lib/qdatabase-18/data/pg_hba.conf
 (1 row)
+
