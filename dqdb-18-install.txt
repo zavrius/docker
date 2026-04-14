@@ -1,0 +1,39 @@
+#LOAD
+sudo docker load -i docker-qdatabase64xid-18-18.1.26032501-ubuntu22_x86_64.tar.gz
+
+#RUN
+sudo docker run -itd \
+--platform=linux/amd64 \
+--restart always \
+--name=qdatabase-18 \
+--shm-size=1g \
+--env="DISPLAY" \
+--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+-p 5445:5445 \
+-p 1433:1433 \
+-p 1521:1521 \
+-v qdb_data:/var/lib/qdatabase-18/data \
+qdatabase_docker
+  
+#EXEC
+docker exec -it qdatabase-18 bash
+
+#PS
+docker ps
+docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
+
+docker exec -it qdatabase-18 bash -lc 'nano /var/lib/qdatabase-18/data/pg_hba.conf'
+
+#CONF
+  # FOR ALL
+host    all    all    0.0.0.0/0    md5
+host    all    all    ::/0         md5
+
+docker exec -it qdatabase-18 bash -lc "echo '
+# FOR ALL
+host all all 0.0.0.0/0 md5
+host all all ::/0 md5
+' >> /var/lib/qdatabase-18/data/pg_hba.conf"
+
+#RESTART
+docker restart qdatabase-18
