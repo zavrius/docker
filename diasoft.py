@@ -1,0 +1,17 @@
+cd ~/demo-python-qdb
+source .venv/bin/activate
+
+python /Users/andrewjuikov/Documents/DIASOFT/Presentation/21.04.26/diasoft.py
+
+
+Что делать дальше
+Запускай демо через тот вариант, который у тебя уже работает:
+cd ~/demo-python-qdb
+source .venv/bin/activate
+python /Users/andrewjuikov/Documents/DIASOFT/Presentation/21.04.26/diasoft.py
+А pyodbc пока можно оставить в стороне как запасной вариант.
+Как это красиво подать в речи
+Можно сказать так:
+“Помимо подключения через клиентские инструменты, к системе могут подключаться и собственные приложения. В данном случае это простой пример на Python, который выполняет запросы к той же базе и получает результаты работы.”
+Это уже звучит крепко и без лишней возни с драйверами.
+
